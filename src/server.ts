@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, isValidURL} from './util/util';
 
 (async () => {
 
@@ -12,6 +12,8 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
+
+
 
   // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
@@ -31,6 +33,47 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   //! END @TODO1
   
+
+
+  
+  //Get /filteredimage emd point
+  // takes am image url and returns a filter version query
+  app.get("/filteredimage/", async (req: Request, res: Response) => {
+    let { imageurl } = req.query;
+
+    if (!imageurl) {
+      return res.status(400).send(`an image url must be given`);
+    }
+
+    //sanity check for well formed url
+    if(!isValidURL(imageurl)){
+      return res.status(400).send(`an image url must be given`);
+    }
+
+    try {
+      const filteredImagePath = await filterImageFromURL(imageurl)
+
+      //better safe than sorry
+      if(!filteredImagePath){
+        return res.status(422).send("An unkown error occurred processing the image");
+      }
+
+      await res.sendFile(filteredImagePath, {}, (err) => {
+
+        //clean up locals files regardless if somethings gone wrong
+        deleteLocalFiles([filteredImagePath])
+
+        //somethings gone belly up.
+        if (err) { 
+          return res.status(422).send("An error occurred processing the image: " + err.message); 
+        }
+      })
+    } catch (err) {
+      //something went wrong down below
+      res.status(422).send("An error occurred processing the image: " + err.message);
+    }
+  });
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
