@@ -39,21 +39,21 @@ import {filterImageFromURL, deleteLocalFiles, isValidURL} from './util/util';
   //Get /filteredimage emd point
   // takes am image url and returns a filter version query
   app.get("/filteredimage/", async (req: Request, res: Response) => {
-    let { imageurl } = req.query;
+    let { image_url } = req.query;
 
-    if (!imageurl) {
+    if (!image_url) {
       return res.status(400).send(`an image url must be given`);
     }
 
     //sanity check for well formed url
-    if(!isValidURL(imageurl)){
-      return res.status(400).send(`an image url must be given`);
+    if(!isValidURL(image_url)){
+      return res.status(400).send(`malformed url was given`);
     }
 
     try {
-      const filteredImagePath = await filterImageFromURL(imageurl)
+      const filteredImagePath = await filterImageFromURL(image_url)
 
-      //better safe than sorry
+      //something went belly up
       if(!filteredImagePath){
         return res.status(422).send("An unkown error occurred processing the image");
       }
