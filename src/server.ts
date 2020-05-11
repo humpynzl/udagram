@@ -14,10 +14,13 @@ import {filterImageFromURL, deleteLocalFiles, isValidURL} from './util/util';
   app.use(bodyParser.json());
 
   
-  //Get /filteredimage end point
+ //Get /filteredimage end point
   // takes am image url and returns a filter version query
   app.get("/filteredimage/", async (req: Request, res: Response) => {
-    let { image_url } = req.query;
+
+    const image_url : string = req.query.image_url;
+
+    console.log(image_url) ;
 
     if (!image_url) {
       return res.status(400).send(`an image url must be given`);
@@ -29,7 +32,7 @@ import {filterImageFromURL, deleteLocalFiles, isValidURL} from './util/util';
     }
 
     try {
-      const filteredImagePath = await filterImageFromURL(image_url)
+      const filteredImagePath : string = await filterImageFromURL(image_url)
 
       //something went belly up
       if(!filteredImagePath){
@@ -51,6 +54,7 @@ import {filterImageFromURL, deleteLocalFiles, isValidURL} from './util/util';
       res.status(422).send("An error occurred processing the image: " + err.message);
     }
   });
+
 
   // Root Endpoint
   // Displays a simple message to the user
